@@ -1,25 +1,28 @@
 import { useEffect, useState } from "react";
 import { marketService, Orderbook } from "@/services/marketService";
-import { Loader2 } from "lucide-react";
 
-interface OrderbookDisplayProps {
-  marketId: string;
-  outcome: string;
+interface Props {
+  marketSlug: string;        // ✅ Must be slug, not ID
+  outcome?: string;          // Default: "Yes"
 }
 
-const OrderbookDisplay = ({ marketId, outcome }: OrderbookDisplayProps) => {
-  const [orderbook, setOrderbook] = useState<Orderbook | null>(null);
-  const [loading, setLoading] = useState(true);
+export default function OrderbookDisplay({ marketSlug, outcome = "Yes" }: Props) {
+  const [orderbook, setOrderbook] = useState<Orderbook>({ bids: [], asks: [] });
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!marketSlug) return;
+
     const fetchOrderbook = async () => {
+      setLoading(true);
+      setError(null);
+
       try {
-        setLoading(true);
-        const data = await marketService.getOrderbook(marketId);
+        const data = await marketService.getOrderbook(marketSlug, outcome);
         setOrderbook(data);
-      } catch (error) {
-        console.error("Failed to fetch orderbook:", error);
-        // Set empty orderbook on error
+      } catch (err: any) {
+        setError(err.message || "Failed to fetch orderbook");
         setOrderbook({ bids: [], asks: [] });
       } finally {
         setLoading(false);
@@ -27,127 +30,52 @@ const OrderbookDisplay = ({ marketId, outcome }: OrderbookDisplayProps) => {
     };
 
     fetchOrderbook();
+  }, [marketSlug, outcome]);
 
-    // Refresh orderbook every 10 seconds
-    const interval = setInterval(fetchOrderbook, 10000);
-    return () => clearInterval(interval);
-  }, [marketId]);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-8">
-        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
-
-  if (!orderbook || (orderbook.bids.length === 0 && orderbook.asks.length === 0)) {
-    return (
-      <div className="text-center py-8 text-muted-foreground">
-        <p>No orders in the order book yet</p>
-        <p className="text-sm mt-2">Be the first to place an order!</p>
-      </div>
-    );
-  }
-
-  const maxSize = Math.max(
-    ...orderbook.bids.map(b => parseFloat(b.size)),
-    ...orderbook.asks.map(a => parseFloat(a.size))
-  );
+  if (loading) return <div>Loading orderbook...</div>;
+  if (error) return <div className="text-red-500">Error: {error}</div>;
 
   return (
-    <div className="space-y-4">
-      {/* Asks (Sell Orders) */}
-      <div className="space-y-1">
-        <div className="flex justify-between text-xs font-semibold text-muted-foreground mb-2 px-2">
-          <span>Price</span>
-          <span>Size</span>
-        </div>
-        
-        <div className="space-y-1 max-h-48 overflow-y-auto">
-          {orderbook.asks.length > 0 ? (
-            [...orderbook.asks].reverse().slice(0, 10).map((ask, index) => {
-              const sizeNum = parseFloat(ask.size);
-              const widthPercent = (sizeNum / maxSize) * 100;
-              
-              return (
-                <div key={index} className="relative">
-                  <div 
-                    className="absolute inset-0 bg-red-100 dark:bg-red-950/30"
-                    style={{ width: `${widthPercent}%` }}
-                  />
-                  <div className="relative flex justify-between px-2 py-1 text-sm">
-                    <span className="text-red-600 dark:text-red-400 font-mono">
-                      ${parseFloat(ask.price).toFixed(2)}
-                    </span>
-                    <span className="text-muted-foreground font-mono">
-                      {sizeNum.toFixed(0)}
-                    </span>
-                  </div>
-                </div>
-              );
-            })
+    <div className="orderbook-container border p-4 rounded-md">
+      <h3 className="text-lg font-bold mb-2">
+        Orderbook for {marketSlug} ({outcome})
+      </h3>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <h4 className="font-semibold mb-1">Bids</h4>
+          {orderbook.bids.length === 0 ? (
+            <div>No bids</div>
           ) : (
-            <p className="text-center text-sm text-muted-foreground py-4">
-              No sell orders
-            </p>
+            orderbook.bids.map((bid, i) => (
+              <div key={i} className="flex justify-between">
+                <span>{bid.size}</span>
+                <span>{bid.price}</span>
+              </div>
+            ))
+          )}
+        </div>
+
+        <div>
+          <h4 className="font-semibold mb-1">Asks</h4>
+          {orderbook.asks.length === 0 ? (
+            <div>No asks</div>
+          ) : (
+            orderbook.asks.map((ask, i) => (
+              <div key={i} className="flex justify-between">
+                <span>{ask.size}</span>
+                <span>{ask.price}</span>
+              </div>
+            ))
           )}
         </div>
       </div>
 
-      {/* Spread */}
-      <div className="py-2 px-2 bg-muted/50 rounded text-center">
-        <span className="text-xs font-semibold text-muted-foreground">
-          {orderbook.bids.length > 0 && orderbook.asks.length > 0 ? (
-            <>
-              Spread: $
-              {(parseFloat(orderbook.asks[0].price) - parseFloat(orderbook.bids[0].price)).toFixed(2)}
-            </>
-          ) : (
-            "No spread data"
-          )}
-        </span>
-      </div>
-
-      {/* Bids (Buy Orders) */}
-      <div className="space-y-1">
-        <div className="flex justify-between text-xs font-semibold text-muted-foreground mb-2 px-2">
-          <span>Price</span>
-          <span>Size</span>
+      {orderbook.spread !== undefined && (
+        <div className="mt-2 font-semibold">
+          Spread: {orderbook.spread.toFixed(4)}
         </div>
-        
-        <div className="space-y-1 max-h-48 overflow-y-auto">
-          {orderbook.bids.length > 0 ? (
-            orderbook.bids.slice(0, 10).map((bid, index) => {
-              const sizeNum = parseFloat(bid.size);
-              const widthPercent = (sizeNum / maxSize) * 100;
-              
-              return (
-                <div key={index} className="relative">
-                  <div 
-                    className="absolute inset-0 bg-green-100 dark:bg-green-950/30"
-                    style={{ width: `${widthPercent}%` }}
-                  />
-                  <div className="relative flex justify-between px-2 py-1 text-sm">
-                    <span className="text-green-600 dark:text-green-400 font-mono">
-                      ${parseFloat(bid.price).toFixed(2)}
-                    </span>
-                    <span className="text-muted-foreground font-mono">
-                      {sizeNum.toFixed(0)}
-                    </span>
-                  </div>
-                </div>
-              );
-            })
-          ) : (
-            <p className="text-center text-sm text-muted-foreground py-4">
-              No buy orders
-            </p>
-          )}
-        </div>
-      </div>
+      )}
     </div>
   );
-};
-
-export default OrderbookDisplay;
+}
