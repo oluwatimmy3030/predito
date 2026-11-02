@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import Header from "@/components/Header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,14 +6,13 @@ import { tradingService, Position } from "@/services/tradingService";
 import { toast } from "sonner";
 
 const Positions = () => {
-  const { token, isAuthenticated } = useAuth();
-  const navigate = useNavigate();
+  const { token } = useAuth();
   const [positions, setPositions] = useState<Position[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      navigate("/signin");
+    if (!token) {
+      setLoading(false);
       return;
     }
 
@@ -32,7 +30,7 @@ const Positions = () => {
     };
 
     fetchPositions();
-  }, [token, isAuthenticated, navigate]);
+  }, [token]);
 
   if (loading) {
     return (

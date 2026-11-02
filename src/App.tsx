@@ -9,9 +9,6 @@ import GeoRestriction from "./components/GeoRestriction";
 import Index from "./pages/Index";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
-import EmailVerification from "./pages/EmailVerification";
-import RequestPasswordReset from "./pages/RequestPasswordReset";
-import ResetPassword from "./pages/ResetPassword";
 import Deposit from "./pages/Deposit";
 import Withdraw from "./pages/Withdraw";
 import Wallet from "./pages/Wallet";
@@ -36,9 +33,6 @@ const App = () => (
               <Route path="/markets" element={<Index />} />
               <Route path="/signin" element={<SignIn />} />
               <Route path="/signup" element={<SignUp />} />
-              <Route path="/verify" element={<EmailVerification />} />
-              <Route path="/request-reset" element={<RequestPasswordReset />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/market/:marketId" element={<MarketDetails />} />
               <Route path="/deposit" element={<ProtectedRoute><Deposit /></ProtectedRoute>} />
               <Route path="/withdraw" element={<ProtectedRoute><Withdraw /></ProtectedRoute>} />

@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import Header from "@/components/Header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,16 +11,15 @@ import { TrendingUp, TrendingDown, Search, Download } from "lucide-react";
 import { toast } from "sonner";
 
 const TradeHistory = () => {
-  const { token, isAuthenticated } = useAuth();
-  const navigate = useNavigate();
+  const { token } = useAuth();
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterSide, setFilterSide] = useState<string>("all");
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      navigate("/signin");
+    if (!token) {
+      setLoading(false);
       return;
     }
 
@@ -39,7 +37,7 @@ const TradeHistory = () => {
     };
 
     fetchTrades();
-  }, [token, isAuthenticated, navigate]);
+  }, [token]);
 
   const filteredTrades = trades.filter((trade) => {
     const matchesSearch = 

@@ -261,7 +261,7 @@ const MarketDetails = () => {
                   <p className="text-muted-foreground mb-4">
                     Sign in to place trades
                   </p>
-                  <Link 
+                  <Link
                     to="/signin"
                     className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
                   >

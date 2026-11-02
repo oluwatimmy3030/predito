@@ -64,7 +64,7 @@ const MarketGrid = ({ category, subcategory, searchQuery = "" }: MarketGridProps
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 animate-fade-in">
       {filteredMarkets.map((market, index) => (
         <MarketCard key={market.id || index} market={market} />
       ))}

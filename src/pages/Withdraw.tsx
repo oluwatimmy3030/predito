@@ -1,92 +1,62 @@
-import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { useState } from "react";
+import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { toast } from "sonner";
-import { ArrowLeft } from "lucide-react";
-import { withdrawalService } from "@/services/withdrawalService";
+import { ArrowLeft, Wallet as WalletIcon, Network, Send } from "lucide-react";
 
 const Withdraw = () => {
-  const { token, isAuthenticated } = useAuth();
-  const navigate = useNavigate();
-  const [currency, setCurrency] = useState("USDC");
+  const [currency, setCurrency] = useState<string>("");
+  const [network, setNetwork] = useState<string>("");
   const [amount, setAmount] = useState("");
-  const [destinationAddress, setDestinationAddress] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate("/signin");
-    }
-  }, [isAuthenticated, navigate]);
-
-  const handleWithdraw = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!amount || parseFloat(amount) <= 0) {
-      toast.error("Please enter a valid amount");
-      return;
-    }
-    
-    if (!destinationAddress) {
-      toast.error("Please enter a destination address");
-      return;
-    }
-    
-    if (!token) {
-      toast.error("Please sign in to withdraw");
-      return;
-    }
-
-    try {
-      setLoading(true);
-      await withdrawalService.initiateWithdrawal(token, {
-        currency,
-        amount,
-        destinationAddress,
-      });
-      
-      toast.success("Withdrawal initiated successfully");
-      setAmount("");
-      setDestinationAddress("");
-      
-      // Redirect to wallet after 2 seconds
-      setTimeout(() => navigate("/wallet"), 2000);
-    } catch (error: any) {
-      toast.error(error.message || "Failed to initiate withdrawal");
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [destination, setDestination] = useState("");
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
       <main className="max-w-3xl mx-auto px-6 py-12">
-        <Link to="/wallet" className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6">
+        <Link to="/wallet" className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors">
           <ArrowLeft className="w-4 h-4" />
           Back to Wallet
         </Link>
-        
-        <h1 className="text-4xl font-bold mb-8 text-foreground">Withdraw Funds</h1>
 
-        <Card>
+        <h1 className="text-4xl font-bold mb-2 text-foreground">Withdraw Funds</h1>
+        <p className="text-muted-foreground mb-8">
+          Withdrawals originate from Solana and are bridged to your selected destination network.
+        </p>
+
+        <Card className="overflow-hidden">
+          <div className="h-1 bg-gradient-to-r from-destructive to-primary" />
           <CardHeader>
-            <CardTitle>Withdraw from your wallet</CardTitle>
-            <CardDescription>
-              Transfer funds from your Predito wallet to an external address
-            </CardDescription>
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-destructive/10">
+                <Send className="w-6 h-6 text-destructive" />
+              </div>
+              <div>
+                <CardTitle>Withdraw from your wallet</CardTitle>
+                <CardDescription>
+                  Withdrawals will originate from Solana and be bridged to your selected destination network.
+                </CardDescription>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleWithdraw} className="space-y-4">
+            <form
+              noValidate
+              className="space-y-5"
+              onSubmit={(event) => {
+                event.preventDefault();
+                // Withdrawal processing handled by backend
+              }}
+            >
               <div className="space-y-2">
-                <Label htmlFor="currency">Currency</Label>
+                <Label htmlFor="currency" className="flex items-center gap-2">
+                  <WalletIcon className="w-4 h-4 text-muted-foreground" />
+                  Currency
+                </Label>
                 <Select value={currency} onValueChange={setCurrency}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select currency" />
@@ -96,6 +66,27 @@ const Withdraw = () => {
                     <SelectItem value="USDT">USDT</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="network" className="flex items-center gap-2">
+                  <Network className="w-4 h-4 text-muted-foreground" />
+                  Destination Network
+                </Label>
+                <Select value={network} onValueChange={setNetwork}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select destination network" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="solana">Solana</SelectItem>
+                    <SelectItem value="ethereum">Ethereum</SelectItem>
+                    <SelectItem value="base">Base</SelectItem>
+                    <SelectItem value="polygon">Polygon</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Supported networks will be provided by the backend.
+                </p>
               </div>
 
               <div className="space-y-2">
@@ -110,24 +101,30 @@ const Withdraw = () => {
                   required
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="destination">Destination Address</Label>
                 <Input
                   id="destination"
                   type="text"
-                  placeholder="0x..."
-                  value={destinationAddress}
-                  onChange={(e) => setDestinationAddress(e.target.value)}
+                  placeholder="Destination wallet address"
+                  value={destination}
+                  onChange={(e) => setDestination(e.target.value)}
                   required
                 />
                 <p className="text-xs text-muted-foreground">
-                  Please double-check the address. Transactions cannot be reversed.
+                  Enter a destination wallet address on the selected network. Withdrawal processing is not connected.
                 </p>
               </div>
 
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Processing..." : "Withdraw"}
+              <div className="p-4 bg-muted/50 rounded-lg">
+                <p className="text-sm text-muted-foreground">
+                  <strong>Note:</strong> Fees, settlement times, and minimum amounts will be provided by the backend.
+                </p>
+              </div>
+
+              <Button type="submit" className="w-full">
+                Preview withdrawal
               </Button>
             </form>
           </CardContent>

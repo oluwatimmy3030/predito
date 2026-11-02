@@ -1,52 +1,13 @@
-import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
-import { authService } from "@/services/authService";
-import { toast } from "sonner";
 
 const SignIn = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
   const navigate = useNavigate();
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    try {
-      const response = await authService.login(email, password);
-      
-      // Handle different response structures
-      const token = response.token || response.accessToken || response.data?.token;
-      const user = response.user || response.data?.user || response.data;
-      
-      if (!token || !user) {
-        throw new Error("Invalid response from server");
-      }
-      
-      login(token, user);
-      toast.success("Login successful!");
-      navigate("/");
-    } catch (error: any) {
-      const errorMessage = error.message?.toLowerCase() || "";
-      
-      // Check if error is about email verification
-      if (errorMessage.includes("verify") || errorMessage.includes("verified") || errorMessage.includes("verification")) {
-        toast.error("Please verify your email before signing in.");
-        navigate("/verify", { state: { email } });
-      } else {
-        toast.error(error.message || "Login failed. Please try again.");
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const { togglePreviewAuth } = useAuth();
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-6 py-12">
@@ -56,40 +17,31 @@ const SignIn = () => {
           <p className="text-muted-foreground">Sign in to your Predito account</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form
+          noValidate
+          onSubmit={(event) => {
+            event.preventDefault();
+            // Auth handled by backend/Privy integration
+            togglePreviewAuth();
+            navigate("/");
+          }}
+          className="space-y-4"
+        >
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">Email Address</Label>
             <Input
               id="email"
               type="email"
               placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Signing in..." : "Sign In"}
+          <Button type="submit" className="w-full">
+            Continue with Email
           </Button>
         </form>
 
         <div className="text-center text-sm space-y-2">
-          <Link to="/request-reset" className="block text-primary hover:text-primary-hover font-medium">
-            Forgot password?
-          </Link>
           <div>
             <span className="text-muted-foreground">Don't have an account? </span>
             <Link to="/signup" className="text-primary hover:text-primary-hover font-medium">

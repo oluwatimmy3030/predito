@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import Header from "@/components/Header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,14 +18,13 @@ interface PnLData {
 }
 
 const PnLDashboard = () => {
-  const { token, isAuthenticated } = useAuth();
-  const navigate = useNavigate();
+  const { token } = useAuth();
   const [pnlData, setPnlData] = useState<PnLData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      navigate("/signin");
+    if (!token) {
+      setLoading(false);
       return;
     }
 
@@ -44,7 +42,7 @@ const PnLDashboard = () => {
     };
 
     fetchPnL();
-  }, [token, isAuthenticated, navigate]);
+  }, [token]);
 
   if (loading) {
     return (

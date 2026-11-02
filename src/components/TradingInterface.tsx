@@ -21,11 +21,11 @@ interface TradingInterfaceProps {
   onOutcomeChange: (outcome: string) => void;
 }
 
-const TradingInterface = ({ 
-  marketId, 
-  selectedOutcome, 
+const TradingInterface = ({
+  marketId,
+  selectedOutcome,
   outcomes,
-  onOutcomeChange 
+  onOutcomeChange,
 }: TradingInterfaceProps) => {
   const { token } = useAuth();
   const [side, setSide] = useState<"buy" | "sell">("buy");
@@ -46,10 +46,8 @@ const TradingInterface = ({
     const amountNum = parseFloat(amount) || 0;
     const priceNum = parseFloat(price) || currentPrice;
     if (side === "buy") {
-      // Potential return if outcome wins
       return (amountNum / priceNum).toFixed(2);
     } else {
-      // Selling - return is the amount you get
       return (amountNum * priceNum).toFixed(2);
     }
   };
@@ -74,7 +72,7 @@ const TradingInterface = ({
 
     try {
       setLoading(true);
-      
+
       await tradingService.placeOrder(token, {
         marketId,
         outcome: selectedOutcome,
@@ -84,8 +82,7 @@ const TradingInterface = ({
       });
 
       toast.success(`${side === "buy" ? "Buy" : "Sell"} order placed successfully`);
-      
-      // Reset form
+
       setAmount("");
       setPrice(currentPrice.toFixed(2));
     } catch (error: any) {
@@ -98,7 +95,6 @@ const TradingInterface = ({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Outcome Selector */}
       <div className="space-y-2">
         <Label htmlFor="outcome">Select Outcome</Label>
         <Select value={selectedOutcome} onValueChange={onOutcomeChange}>
@@ -120,7 +116,6 @@ const TradingInterface = ({
         </Select>
       </div>
 
-      {/* Buy/Sell Tabs */}
       <Tabs value={side} onValueChange={(v) => setSide(v as "buy" | "sell")} className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="buy" className="data-[state=active]:bg-green-100 data-[state=active]:text-green-900">
@@ -150,7 +145,6 @@ const TradingInterface = ({
         </TabsContent>
       </Tabs>
 
-      {/* Amount Input */}
       <div className="space-y-2">
         <Label htmlFor="amount">Amount (shares)</Label>
         <Input
@@ -165,7 +159,6 @@ const TradingInterface = ({
         />
       </div>
 
-      {/* Price Input */}
       <div className="space-y-2">
         <Label htmlFor="price">Price per share</Label>
         <div className="relative">
@@ -190,7 +183,6 @@ const TradingInterface = ({
         </p>
       </div>
 
-      {/* Order Summary */}
       <div className="p-4 bg-muted/50 rounded-lg space-y-2">
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">Total Cost</span>
@@ -214,9 +206,8 @@ const TradingInterface = ({
         )}
       </div>
 
-      {/* Submit Button */}
-      <Button 
-        type="submit" 
+      <Button
+        type="submit"
         className="w-full"
         disabled={loading}
         variant={side === "buy" ? "default" : "destructive"}

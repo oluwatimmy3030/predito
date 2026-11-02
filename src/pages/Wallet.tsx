@@ -10,7 +10,7 @@ import { Copy, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 
 const Wallet = () => {
-  const { token, isAuthenticated, logout } = useAuth();
+  const { token, logout } = useAuth();
   const navigate = useNavigate();
   const [balance, setBalance] = useState<Balance | null>(null);
   const [depositAddresses, setDepositAddresses] = useState<DepositAddress[]>([]);
@@ -18,8 +18,9 @@ const Wallet = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!isAuthenticated || !token) {
-      navigate("/signin");
+    if (!token) {
+      setBalance({ usdc: "1250.00", usdt: "340.00", total: "1590.00" });
+      setLoading(false);
       return;
     }
 
@@ -31,17 +32,16 @@ const Wallet = () => {
           walletService.getDepositAddresses(token),
           walletService.getTransactions(token),
         ]);
-        
+
         setBalance(balanceData);
         setDepositAddresses(addressesData);
         setTransactions(transactionsData);
-      } catch (error: any) {
+      } catch (error) {
         console.error('Wallet fetch error:', error);
-        // Handle token expiration
-        if (error.message?.includes('Token expired') || error.message?.includes('401')) {
-          toast.error("Session expired. Please sign in again.");
+        const errorMessage = error instanceof Error ? error.message : "";
+        if (errorMessage.includes('Token expired') || errorMessage.includes('401')) {
+          toast.error("Session expired. Sign in again to load account data.");
           logout();
-          navigate("/signin");
         } else {
           toast.error("Failed to load wallet data");
         }
@@ -51,7 +51,7 @@ const Wallet = () => {
     };
 
     fetchWalletData();
-  }, [token, isAuthenticated, navigate, logout]);
+  }, [token, navigate, logout]);
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -75,11 +75,14 @@ const Wallet = () => {
       <main className="max-w-7xl mx-auto px-6 py-12">
         <h1 className="text-4xl font-bold mb-8 text-foreground">Wallet</h1>
 
-        {/* Balance Section */}
         <Card className="mb-8">
           <CardHeader>
             <CardTitle>Balance</CardTitle>
-            <CardDescription>Your current wallet balance</CardDescription>
+            <CardDescription>
+              {token
+                ? "Your current wallet balance"
+                : "Sample balances for frontend review — not real funds"}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -120,7 +123,7 @@ const Wallet = () => {
               <CardHeader>
                 <CardTitle>Deposit Addresses</CardTitle>
                 <CardDescription>
-                  Send funds to these addresses to deposit into your wallet
+                  Deposit addresses are provided for supported assets and networks. Eligible deposits will be bridged to Solana for platform settlement.
                 </CardDescription>
               </CardHeader>
               <CardContent>

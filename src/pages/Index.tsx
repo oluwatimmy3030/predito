@@ -39,8 +39,8 @@ const Index = () => {
         onCategoryChange={handleCategoryChange}
         onSubcategoryChange={handleSubcategoryChange}
       />
-      <main className="max-w-7xl mx-auto px-6 py-12">
-        <h2 className="text-3xl font-bold mb-8 text-foreground">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        <h2 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-foreground">
           {getDisplayTitle()}
         </h2>
         <MarketGrid 

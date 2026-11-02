@@ -1,7 +1,8 @@
+import type { KeyboardEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Clock, TrendingUp, TrendingDown } from "lucide-react";
+import { Clock } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 interface Outcome {
@@ -32,6 +33,13 @@ const MarketCard = ({ market }: MarketCardProps) => {
     }
   };
 
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (market.id && (event.key === "Enter" || event.key === " ")) {
+      event.preventDefault();
+      handleClick();
+    }
+  };
+
   const formatVolume = (volume: string) => {
     const num = parseFloat(volume);
     if (num >= 1000000) return `$${(num / 1000000).toFixed(1)}M`;
@@ -51,11 +59,6 @@ const MarketCard = ({ market }: MarketCardProps) => {
     }
   };
 
-  // TODO: Connect to API for real-time price change data
-  // When API provides price history, calculate trend from historical data
-  const hasTrend = false; // TODO: Replace with actual trend calculation
-  const isPositive = false; // TODO: Replace with actual trend direction
-
   // Normalize outcomes - handle both string and array formats
   let outcomesArray: Outcome[] = [];
   if (typeof market.outcomes === 'string') {
@@ -73,9 +76,13 @@ const MarketCard = ({ market }: MarketCardProps) => {
   const endDate = market.endDateIso || market.end_date_iso || "";
 
   return (
-    <Card 
+    <Card
       onClick={handleClick}
-      className="p-5 hover:shadow-card-hover transition-all duration-300 cursor-pointer group bg-card border-border"
+      onKeyDown={handleKeyDown}
+      role={market.id ? "link" : undefined}
+      tabIndex={market.id ? 0 : undefined}
+      aria-label={market.id ? `View market: ${market.question}` : undefined}
+      className="p-5 sm:p-6 hover:-translate-y-0.5 hover:shadow-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-all duration-300 cursor-pointer group bg-card border-border"
     >
       <div className="space-y-4">
         {/* Tags */}
@@ -99,18 +106,9 @@ const MarketCard = ({ market }: MarketCardProps) => {
           {outcomesArray.slice(0, 2).map((outcome, index) => (
             <div key={index} className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground">{outcome.name}</span>
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold text-foreground">
-                  {formatPrice(outcome.price)}
-                </span>
-                {hasTrend && index === 0 && (
-                  isPositive ? (
-                    <TrendingUp className="w-4 h-4 text-success" />
-                  ) : (
-                    <TrendingDown className="w-4 h-4 text-destructive" />
-                  )
-                )}
-              </div>
+              <span className="text-sm font-semibold text-foreground">
+                {formatPrice(outcome.price)}
+              </span>
             </div>
           ))}
         </div>

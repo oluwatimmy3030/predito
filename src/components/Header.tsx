@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { LogIn, UserPlus, LogOut, User, Menu, X, Home, BarChart3, Wallet, ArrowDownToLine, ArrowUpFromLine, TrendingUp, History, DollarSign } from "lucide-react";
+import { LogIn, UserPlus, LogOut, User, Menu, Home, BarChart3, Wallet, ArrowDownToLine, ArrowUpFromLine, TrendingUp, History, DollarSign } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
@@ -31,49 +31,48 @@ const Header = () => {
     { to: "/pnl", label: "P&L", icon: DollarSign },
   ];
 
-  const publicNavLinks = [
-    { to: "/", label: "Home", icon: Home },
-    { to: "/markets", label: "Markets", icon: BarChart3 },
-  ];
-
   return (
-    <header className="border-b border-border bg-background sticky top-0 z-50">
+    <header className="border-b border-border bg-background/95 backdrop-blur-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center">
-              <span className="text-2xl font-bold text-primary-foreground">P</span>
-            </div>
-            <span className="text-2xl font-bold text-foreground">Predito</span>
+          <Link to="/" className="flex items-center gap-2.5 group">
+            <img src="/predito-logo.svg" alt="" className="w-10 h-10 transition-transform group-hover:scale-105" />
+            <span className="text-2xl font-bold text-foreground tracking-tight">Predito</span>
           </Link>
-          
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-3">
-            {isAuthenticated && (
+
+          <div className="hidden md:flex items-center gap-2">
+            <Button asChild variant="ghost" size="sm" className="hidden lg:flex">
+              <Link to="/markets">Markets</Link>
+            </Button>
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/wallet">Wallet</Link>
+            </Button>
+            <Button asChild variant="ghost" size="sm" className="hidden lg:flex">
+              <Link to="/deposit">Deposit</Link>
+            </Button>
+            <Button asChild variant="ghost" size="sm" className="hidden lg:flex">
+              <Link to="/withdraw">Withdraw</Link>
+            </Button>
+            <Button asChild variant="ghost" size="sm" className="hidden lg:flex">
+              <Link to="/positions">Positions</Link>
+            </Button>
+            <Button asChild variant="ghost" size="sm" className="hidden xl:flex">
+              <Link to="/trades">Trades</Link>
+            </Button>
+            <Button asChild variant="ghost" size="sm" className="hidden xl:flex">
+              <Link to="/pnl">P&L</Link>
+            </Button>
+
+            {isAuthenticated ? (
               <>
-                <Button asChild variant="ghost" size="sm">
-                  <Link to="/markets">Markets</Link>
-                </Button>
-                <Button asChild variant="ghost" size="sm">
-                  <Link to="/wallet">Wallet</Link>
-                </Button>
-                <Button asChild variant="ghost" size="sm">
-                  <Link to="/positions">Positions</Link>
-                </Button>
-                <Button asChild variant="ghost" size="sm" className="hidden lg:flex">
-                  <Link to="/trades">Trades</Link>
-                </Button>
-                <Button asChild variant="ghost" size="sm" className="hidden lg:flex">
-                  <Link to="/pnl">P&L</Link>
-                </Button>
-                <div className="h-6 w-px bg-border" />
-                <div className="flex items-center gap-2 px-3 py-1 bg-muted rounded-lg">
+                <div className="h-6 w-px bg-border mx-2" />
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-muted rounded-lg">
                   <User className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm font-medium">{user?.username}</span>
+                  <span className="text-sm font-medium">{user?.email || "User"}</span>
                 </div>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
+                <Button
+                  variant="ghost"
+                  size="sm"
                   className="gap-2"
                   onClick={handleLogout}
                 >
@@ -81,27 +80,16 @@ const Header = () => {
                   Logout
                 </Button>
               </>
-            )}
-            
-            {!isAuthenticated && (
-              <>
-                <Button asChild variant="ghost" size="sm" className="gap-2">
-                  <Link to="/signin">
-                    <LogIn className="w-4 h-4" />
-                    Sign In
-                  </Link>
-                </Button>
-                <Button asChild size="sm" className="gap-2">
-                  <Link to="/signup">
-                    <UserPlus className="w-4 h-4" />
-                    Sign Up
-                  </Link>
-                </Button>
-              </>
+            ) : (
+              <Button asChild size="sm" className="gap-2">
+                <Link to="/signin">
+                  <LogIn className="w-4 h-4" />
+                  Sign In / Sign Up
+                </Link>
+              </Button>
             )}
           </div>
 
-          {/* Mobile Hamburger Menu */}
           <div className="md:hidden">
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild>
@@ -116,17 +104,15 @@ const Header = () => {
                     <span className="text-xl font-bold text-foreground">Menu</span>
                   </div>
 
-                  {/* User Info for authenticated users */}
                   {isAuthenticated && user && (
                     <div className="flex items-center gap-3 px-2 py-3 mb-4 bg-muted rounded-lg">
                       <User className="w-5 h-5 text-muted-foreground" />
-                      <span className="font-medium text-foreground">{user.username}</span>
+                      <span className="font-medium text-foreground">{user.email || "User"}</span>
                     </div>
                   )}
 
-                  {/* Navigation Links */}
                   <nav className="flex flex-col gap-1 flex-1">
-                    {(isAuthenticated ? authNavLinks : publicNavLinks).map((link) => (
+                    {authNavLinks.map((link) => (
                       <SheetClose asChild key={link.to}>
                         <Link
                           to={link.to}
@@ -140,11 +126,10 @@ const Header = () => {
                     ))}
                   </nav>
 
-                  {/* Auth Buttons */}
                   <div className="border-t border-border pt-4 mt-4">
                     {isAuthenticated ? (
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         className="w-full gap-2"
                         onClick={handleLogout}
                       >
@@ -152,24 +137,14 @@ const Header = () => {
                         Logout
                       </Button>
                     ) : (
-                      <div className="flex flex-col gap-2">
-                        <SheetClose asChild>
-                          <Button asChild className="w-full gap-2">
-                            <Link to="/signin" onClick={handleNavClick}>
-                              <LogIn className="w-4 h-4" />
-                              Sign In
-                            </Link>
-                          </Button>
-                        </SheetClose>
-                        <SheetClose asChild>
-                          <Button asChild variant="outline" className="w-full gap-2">
-                            <Link to="/signup" onClick={handleNavClick}>
-                              <UserPlus className="w-4 h-4" />
-                              Sign Up
-                            </Link>
-                          </Button>
-                        </SheetClose>
-                      </div>
+                      <SheetClose asChild>
+                        <Button asChild className="w-full gap-2">
+                          <Link to="/signin" onClick={handleNavClick}>
+                            <LogIn className="w-4 h-4" />
+                            Sign In / Sign Up
+                          </Link>
+                        </Button>
+                      </SheetClose>
                     )}
                   </div>
                 </div>
